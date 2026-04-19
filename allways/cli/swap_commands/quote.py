@@ -1,7 +1,5 @@
 """alw swap quote - Preview rates and estimated receive amounts before swapping."""
 
-from decimal import Decimal
-
 import rich_click as click
 from rich.table import Table
 
@@ -10,9 +8,11 @@ from allways.cli.swap_commands.helpers import (
     console,
     find_matching_miners,
     from_rao,
+    from_smallest_unit,
     get_cli_context,
     loading,
     read_miner_commitments,
+    to_smallest_unit,
 )
 from allways.constants import FEE_DIVISOR
 from allways.contract_client import ContractError
@@ -71,9 +71,7 @@ def quote_command(from_chain: str, to_chain: str, amount: float):
     config, _, subtensor, client = get_cli_context(need_wallet=False)
     netuid = config['netuid']
 
-    # Convert to smallest units
-    src_chain_def = get_chain(from_chain)
-    from_amount = int(Decimal(str(amount)) * (10**src_chain_def.decimals))
+    from_amount = to_smallest_unit(amount, from_chain)
 
     fee_divisor = FEE_DIVISOR
     fee_pct = 100 / fee_divisor
@@ -105,7 +103,6 @@ def quote_command(from_chain: str, to_chain: str, amount: float):
     is_reverse = from_chain != canon_from
     canon_to_decimals = get_chain(canon_to).decimals
     canon_from_decimals = get_chain(canon_from).decimals
-    dst_chain_def = get_chain(to_chain)
 
     # Contract-side bounds are global — check before per-miner viability so
     # a user who requested an out-of-bounds amount gets one clear reason
@@ -157,7 +154,7 @@ def quote_command(from_chain: str, to_chain: str, amount: float):
     for idx, (pair, collateral) in enumerate(available, 1):
         to_amount = calculate_to_amount(from_amount, pair.rate_str, is_reverse, canon_to_decimals, canon_from_decimals)
         user_receives = apply_fee_deduction(to_amount, fee_divisor)
-        human_receives = user_receives / (10**dst_chain_def.decimals)
+        human_receives = from_smallest_unit(user_receives, to_chain)
 
         tao_amount_rao = derive_tao_leg(from_chain, from_amount, to_chain, to_amount)
         viable, reason = check_swap_viability(tao_amount_rao, collateral, min_swap_rao, max_swap_rao)

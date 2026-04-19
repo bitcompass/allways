@@ -9,7 +9,7 @@ from rich.live import Live
 from rich.table import Table
 from rich.text import Text
 
-from allways.chains import SUPPORTED_CHAINS, get_chain
+from allways.chains import SUPPORTED_CHAINS
 from allways.classes import SwapStatus
 from allways.cli.help import StyledGroup
 from allways.cli.swap_commands.helpers import (
@@ -18,6 +18,7 @@ from allways.cli.swap_commands.helpers import (
     clear_pending_swap,
     console,
     from_rao,
+    from_smallest_unit,
     get_cli_context,
     load_pending_swap,
     loading,
@@ -320,10 +321,8 @@ def build_swap_text(swap, chain_info=True):
 
     src = swap.from_chain.upper()
     dst = swap.to_chain.upper()
-    src_chain_def = get_chain(swap.from_chain)
-    dst_chain_def = get_chain(swap.to_chain)
-    src_human = swap.from_amount / (10**src_chain_def.decimals)
-    dst_human = swap.to_amount / (10**dst_chain_def.decimals)
+    src_human = from_smallest_unit(swap.from_amount, swap.from_chain)
+    dst_human = from_smallest_unit(swap.to_amount, swap.to_chain)
     parts.append(f'  {src} -> {dst} | {src_human:g} {src} -> {dst_human:.8f} {dst} | Rate: {swap.rate}')
 
     timed_out = swap.status == SwapStatus.TIMED_OUT
@@ -588,10 +587,8 @@ def view_reservation():
     table.add_column('Field', style='cyan')
     table.add_column('Value', style='green')
 
-    chain = get_chain(state.from_chain)
-    human_send = state.from_amount / (10**chain.decimals)
-    to_chain_def = get_chain(state.to_chain)
-    human_receive = state.user_receives / (10**to_chain_def.decimals)
+    human_send = from_smallest_unit(state.from_amount, state.from_chain)
+    human_receive = from_smallest_unit(state.user_receives, state.to_chain)
 
     table.add_row('Pair', f'{state.from_chain.upper()} -> {state.to_chain.upper()}')
     table.add_row('Send', f'{human_send} {state.from_chain.upper()}')
