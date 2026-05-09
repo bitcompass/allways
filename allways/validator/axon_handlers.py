@@ -414,12 +414,6 @@ async def handle_swap_reserve(
             synapse.accepted = True
             bt.logging.info(f'Voted to reserve miner {miner}')
 
-<<<<<<< refactor/share-axon-handler-helpers
-=======
-    except ContractError as e:
-        bt.logging.error(f'{ctx} failed: {e}')
-        reject_synapse(synapse, str(e))
->>>>>>> test
     except Exception as e:
         reject_from_exception(synapse, e, ctx, 'Contract rejected the reservation')
 
@@ -613,12 +607,6 @@ async def handle_swap_confirm(
             synapse.accepted = True
             bt.logging.info(f'Voted to initiate swap for miner {miner}')
 
-<<<<<<< refactor/share-axon-handler-helpers
-=======
-    except ContractError as e:
-        bt.logging.error(f'{ctx} failed: {e}')
-        reject_synapse(synapse, str(e))
->>>>>>> test
     except Exception as e:
         reject_from_exception(synapse, e, ctx, 'Contract rejected the swap initiation')
 
